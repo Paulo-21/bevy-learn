@@ -8,12 +8,6 @@ struct Player;
 #[derive(Component)]
 struct TimeStampUpdate(Instant);
 
-fn spawn_camera (mut commands : Commands) {
-   let mut camera_bundle = OrthographicCameraBundle::new_2d();
-    camera_bundle.orthographic_projection.scale = 1. / 50.;
-    commands.spawn_bundle(camera_bundle);
-}
-
 fn move_player(
     keys: Res<Input<KeyCode>>, 
     mut player_query: Query<&mut Transform, With<Player>>, 
@@ -41,23 +35,12 @@ fn move_player(
         return;
     }
     let move_speed:f32 = 0.05;
-    let move_delta = (direction * move_speed);
+    let move_delta = direction * move_speed;
     for mut transform in player_query.iter_mut() {
         transform.translation += move_delta;
     }
 }
 
-fn spawn_player(mut commands: Commands) {
-    commands.spawn_bundle(SpriteBundle {
-        sprite: Sprite {
-            color: Color::rgb(0., 0.47, 1.),
-            custom_size: Some(Vec2::new(1., 1.)),
-            ..Default::default()
-        },
-        ..Default::default()
-    })
-    .insert(Player);
-}
 fn setup (
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -71,7 +54,7 @@ fn setup (
     // cube
     commands.spawn_bundle(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-        material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
+        material: materials.add(Color::rgb(0.5, 0.0, 1.0).into()),
         transform: Transform::from_xyz(0.0, 0.5, 0.0),
         ..default()
     })
@@ -80,10 +63,11 @@ fn setup (
     commands.spawn_bundle(PointLightBundle {
         point_light: PointLight {
             intensity: 1500.0,
+            color: Color::RED,
             shadows_enabled: true,
             ..default()
         },
-        transform: Transform::from_xyz(4.0, 8.0, 0.0),
+        transform: Transform::from_xyz(2.0, 1.0, 0.0),
         ..default()
     });
     // camera
