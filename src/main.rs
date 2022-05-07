@@ -1,10 +1,6 @@
-use std::ascii::AsciiExt;
-
-use bevy::{prelude::*, asset};
-use bevy::render::render_resource::TextureAspect;
+use bevy::{prelude::*};
 use bevy::window;
 use bevy::window::WindowMode;
-
 
 #[derive(Component)]
 struct Player;

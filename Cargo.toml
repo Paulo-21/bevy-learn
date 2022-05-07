@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 bevy = { version = "0.7"}
+
 # in `Cargo.toml` or `.cargo/config.toml`
 
 # Enable only a small amount of optimization in debug mode
