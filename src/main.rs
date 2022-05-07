@@ -19,24 +19,29 @@ fn move_player(
     mut player_query: Query<&mut Transform, With<Player>>, 
 ) {
     let mut direction = Vec3::ZERO;
-    if keys.any_pressed([KeyCode::Up, KeyCode::W]) {
-        direction.y += 1.;
+    if keys.any_pressed([KeyCode::Z]) {
+        direction.z -= 1.;
     }
-    if keys.any_pressed([KeyCode::Down, KeyCode::S]) {
-        direction.y -= 1.;
+    if keys.any_pressed([KeyCode::S]) {
+        direction.z += 1.;
     }
     if keys.any_pressed([KeyCode::Right, KeyCode::D]) {
         direction.x += 1.;
     }
-    if keys.any_pressed([KeyCode::Left, KeyCode::A]) {
+    if keys.any_pressed([KeyCode::Left, KeyCode::Q]) {
         direction.x -= 1.;
+    }
+    if keys.any_pressed([KeyCode::Up]) {
+        direction.y += 1.;
+    }
+    if keys.any_pressed([KeyCode::Down]) {
+        direction.y -= 1.;
     }
     if direction == Vec3::ZERO {
         return;
     }
     let move_speed:f32 = 0.05;
     let move_delta = (direction * move_speed);
-
     for mut transform in player_query.iter_mut() {
         transform.translation += move_delta;
     }
@@ -106,6 +111,5 @@ fn main() {
         //.add_startup_system(spawn_player)
         .add_startup_system(setup)
         .add_system(move_player)
-
         .run();
 }
