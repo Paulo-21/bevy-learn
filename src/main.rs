@@ -2,7 +2,6 @@ use bevy::{prelude::*};
 use bevy::window;
 use bevy::window::WindowMode;
 use std::time::{Instant};
-
 #[derive(Component)]
 struct Player;
 #[derive(Component)]
@@ -43,6 +42,7 @@ fn move_player(
 
 fn setup (
     mut commands: Commands,
+    asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials : ResMut<Assets<StandardMaterial>>,
 ) {
@@ -52,15 +52,26 @@ fn setup (
         ..default()
     });
     // cube
-    commands.spawn_bundle(PbrBundle {
+    /*commands.spawn_bundle(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
         material: materials.add(Color::rgb(0.5, 0.0, 1.0).into()),
         transform: Transform::from_xyz(0.0, 0.5, 0.0),
         ..default()
     })
-    .insert(Player);
+    .insert(Player);*/
+    //commands.spawn_scene(asset_server.load::<Scene, _>("models/gltf/character_knight.gltf#Scene0"))
+    
+    commands.spawn_bundle(TransformBundle::from(Transform {
+                translation: Vec3::new(0.0,0.,0.),
+                rotation: Quat::from_rotation_y(-std::f32::consts::FRAC_PI_4),
+                ..default()
+            }))
+            .with_children(|cell| {
+                cell.spawn_scene(asset_server.load::<Scene, _>("models/gltf/character_knight.gltf#Scene0"));
+            }).insert(Player);
+            
     // light
-    commands.spawn_bundle(PointLightBundle {
+    /*commands.spawn_bundle(PointLightBundle {
         point_light: PointLight {
             intensity: 1500.0,
             color: Color::RED,
@@ -68,6 +79,16 @@ fn setup (
             ..default()
         },
         transform: Transform::from_xyz(2.0, 1.0, 0.0),
+        ..default()
+    });*/
+    commands.spawn_bundle(PointLightBundle {
+        point_light: PointLight {
+            intensity: 1500.0,
+            color: Color::YELLOW,
+            shadows_enabled: true,
+            ..default()
+        },
+        transform: Transform::from_xyz(-4.0, 8.0, 0.0),
         ..default()
     });
     // camera
