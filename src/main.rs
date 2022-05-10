@@ -1,42 +1,33 @@
 use bevy::{prelude::*};
 use bevy::window;
 use bevy::window::WindowMode;
-use std::time::{Instant};
 #[derive(Component)]
 struct Player;
-#[derive(Component)]
-struct TimeStampUpdate(Instant);
 
 fn move_player(
     keys: Res<Input<KeyCode>>, 
     mut player_query: Query<&mut Transform, With<Player>>, 
 ) {
+    let mut angle = 0.0;
     let mut direction = Vec3::ZERO;
-    if keys.any_pressed([KeyCode::Z]) {
-        direction.z -= 1.;
-    }
-    if keys.any_pressed([KeyCode::S]) {
-        direction.z += 1.;
-    }
-    if keys.any_pressed([KeyCode::Right, KeyCode::D]) {
-        direction.x += 1.;
-    }
-    if keys.any_pressed([KeyCode::Left, KeyCode::Q]) {
-        direction.x -= 1.;
-    }
-    if keys.any_pressed([KeyCode::Up]) {
-        direction.y += 1.;
-    }
-    if keys.any_pressed([KeyCode::Down]) {
-        direction.y -= 1.;
-    }
-    if direction == Vec3::ZERO {
-        return;
-    }
+    if keys.any_pressed([KeyCode::Z]) { direction.z -= 1.; }
+    if keys.any_pressed([KeyCode::S]) { direction.z += 1.; }
+    if keys.any_pressed([KeyCode::D]) { direction.x += 1.; }
+    if keys.any_pressed([KeyCode::Q]) { direction.x -= 1.; }
+    if keys.any_pressed([KeyCode::Up]) { direction.y += 1.; }
+    if keys.any_pressed([KeyCode::Down]) { direction.y -= 1.; }
+    if keys.any_pressed([KeyCode::Left]) { angle = 0.2; }
+    if keys.any_pressed([KeyCode::Right]) { angle = -0.2; }
+    if direction == Vec3::ZERO && angle == 0.0 { return; }
+
     let move_speed:f32 = 0.05;
-    let move_delta = direction * move_speed;
+    let mut move_delta = direction * move_speed;
+    
     for mut transform in player_query.iter_mut() {
+        /*let r = transform.rotation.xyz().normalize();
+        move_delta *= r;*/
         transform.translation += move_delta;
+        transform.rotate(Quat::from_rotation_y(angle));
     }
 }
 
@@ -51,36 +42,15 @@ fn setup (
         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
         ..default()
     });
-    // cube
-    /*commands.spawn_bundle(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-        material: materials.add(Color::rgb(0.5, 0.0, 1.0).into()),
-        transform: Transform::from_xyz(0.0, 0.5, 0.0),
-        ..default()
-    })
-    .insert(Player);*/
-    //commands.spawn_scene(asset_server.load::<Scene, _>("models/gltf/character_knight.gltf#Scene0"))
-    
     commands.spawn_bundle(TransformBundle::from(Transform {
-                translation: Vec3::new(0.0,0.,0.),
-                rotation: Quat::from_rotation_y(-std::f32::consts::FRAC_PI_4),
-                ..default()
-            }))
-            .with_children(|cell| {
-                cell.spawn_scene(asset_server.load::<Scene, _>("models/gltf/character_knight.gltf#Scene0"));
-            }).insert(Player);
-            
-    // light
-    /*commands.spawn_bundle(PointLightBundle {
-        point_light: PointLight {
-            intensity: 1500.0,
-            color: Color::RED,
-            shadows_enabled: true,
-            ..default()
-        },
-        transform: Transform::from_xyz(2.0, 1.0, 0.0),
+        translation: Vec3::new(0.0,0.,0.),
+        rotation: Quat::from_rotation_y(-std::f32::consts::FRAC_PI_4),
         ..default()
-    });*/
+    }))
+    .with_children(|cell| {
+        cell.spawn_scene(asset_server.load::<Scene, _>("models/gltf/character_knight.gltf#Scene0"));
+    }).insert(Player);
+ 
     commands.spawn_bundle(PointLightBundle {
         point_light: PointLight {
             intensity: 1500.0,
@@ -100,21 +70,16 @@ fn setup (
 fn main() {
     println!("Bienvenue sur mon jeu");
     
-        App::new()
-        // Set antialiasing to use 4 samples
-        //.insert_resource(Msaa { samples: 4 })
-        // Set WindowDescriptor Resource to change title and size
-        .insert_resource(ClearColor(Color::rgb(0.53, 0.53, 0.53)))
-        .insert_resource(WindowDescriptor {
-            title: "Jeux video".to_string(),
-            present_mode : window::PresentMode::Fifo,
-            mode : WindowMode::Windowed,
-            ..Default::default()
-        })
-        .add_plugins(DefaultPlugins)
-        //.add_startup_system(spawn_camera)
-        //.add_startup_system(spawn_player)
-        .add_startup_system(setup)
-        .add_system(move_player)
-        .run();
+    App::new()
+    .insert_resource(ClearColor(Color::rgb(0.53, 0.53, 0.53)))
+    .insert_resource(WindowDescriptor {
+        title: "Jeux video".to_string(),
+        present_mode : window::PresentMode::Fifo,
+        mode : WindowMode::Windowed,
+        ..Default::default()
+    })
+    .add_plugins(DefaultPlugins)
+    .add_startup_system(setup)
+    .add_system(move_player)
+    .run();
 }
