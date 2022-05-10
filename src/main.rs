@@ -10,10 +10,10 @@ fn move_player(
 ) {
     let mut angle = 0.0;
     let mut direction = Vec3::ZERO;
-    if keys.any_pressed([KeyCode::Z]) { direction.z -= 1.; }
-    if keys.any_pressed([KeyCode::S]) { direction.z += 1.; }
-    if keys.any_pressed([KeyCode::D]) { direction.x += 1.; }
-    if keys.any_pressed([KeyCode::Q]) { direction.x -= 1.; }
+    if keys.any_pressed([KeyCode::Z]) { direction.z += 1.; }
+    if keys.any_pressed([KeyCode::S]) { direction.z -= 1.; }
+    if keys.any_pressed([KeyCode::D]) { direction.x -= 1.; }
+    if keys.any_pressed([KeyCode::Q]) { direction.x += 1.; }
     if keys.any_pressed([KeyCode::Up]) { direction.y += 1.; }
     if keys.any_pressed([KeyCode::Down]) { direction.y -= 1.; }
     if keys.any_pressed([KeyCode::Left]) { angle = 0.2; }
@@ -21,13 +21,13 @@ fn move_player(
     if direction == Vec3::ZERO && angle == 0.0 { return; }
 
     let move_speed:f32 = 0.05;
-    let mut move_delta = direction * move_speed;
+    let move_delta = direction * move_speed;
     
     for mut transform in player_query.iter_mut() {
-        /*let r = transform.rotation.xyz().normalize();
-        move_delta *= r;*/
-        transform.translation += move_delta;
         transform.rotate(Quat::from_rotation_y(angle));
+        
+        let r = transform.rotation.mul_vec3(move_delta);
+        transform.translation  += r;
     }
 }
 
@@ -74,6 +74,8 @@ fn main() {
     .insert_resource(ClearColor(Color::rgb(0.53, 0.53, 0.53)))
     .insert_resource(WindowDescriptor {
         title: "Jeux video".to_string(),
+        width : 500.0,
+        height : 400.0,
         present_mode : window::PresentMode::Fifo,
         mode : WindowMode::Windowed,
         ..Default::default()
