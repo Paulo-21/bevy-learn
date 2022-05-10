@@ -16,8 +16,8 @@ fn move_player(
     if keys.any_pressed([KeyCode::Q]) { direction.x += 1.; }
     if keys.any_pressed([KeyCode::Up]) { direction.y += 1.; }
     if keys.any_pressed([KeyCode::Down]) { direction.y -= 1.; }
-    if keys.any_pressed([KeyCode::Left]) { angle = 0.2; }
-    if keys.any_pressed([KeyCode::Right]) { angle = -0.2; }
+    if keys.any_pressed([KeyCode::Left]) { angle = 0.1; }
+    if keys.any_pressed([KeyCode::Right]) { angle = -0.1; }
     if direction == Vec3::ZERO && angle == 0.0 { return; }
 
     let move_speed:f32 = 0.05;
@@ -48,22 +48,22 @@ fn setup (
         ..default()
     }))
     .with_children(|cell| {
-        cell.spawn_scene(asset_server.load::<Scene, _>("models/gltf/character_knight.gltf#Scene0"));
+        cell.spawn_scene(asset_server.load::<Scene, _>("models/gltf/character_rogue.gltf#Scene0"));
     }).insert(Player);
- 
+
     commands.spawn_bundle(PointLightBundle {
         point_light: PointLight {
-            intensity: 1500.0,
+            intensity: 2500.0,
             color: Color::YELLOW,
-            shadows_enabled: true,
+            shadows_enabled: false,
             ..default()
         },
-        transform: Transform::from_xyz(-4.0, 8.0, 0.0),
+        transform: Transform::from_xyz(-4.0, 8.0, 10.0),
         ..default()
     });
     // camera
     commands.spawn_bundle(PerspectiveCameraBundle {
-        transform: Transform::from_xyz(-2.0, 2.5, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
+        transform: Transform::from_xyz(0.0, 5.0, 7.0).looking_at(Vec3::ZERO, Vec3::Y),
         ..default()
     });
 }
