@@ -1,12 +1,13 @@
 use bevy::{prelude::*};
 use bevy::window;
 use bevy::window::WindowMode;
-use std::time::{ Instant };
+//use std::time::{ Instant };
 use rstar::{RTree, RTreeObject, AABB, PointDistance};
 
 #[derive(Component, Default)]
 struct Player;
 #[derive(Component)]
+#[allow(dead_code)]
 struct Block {
     entity : Option<Entity>,
     size : f32,
