@@ -1,8 +1,10 @@
 use bevy::{prelude::*};
 use bevy::window;
 use bevy::window::WindowMode;
+use bevy::render::camera::Camera3d;
 //use std::time::{ Instant };
 use rstar::{RTree, RTreeObject, AABB, PointDistance};
+
 
 #[derive(Component, Default)]
 struct Player;
@@ -18,7 +20,7 @@ struct Block {
 #[derive(Default)]
 struct Game {
     map : RTree<Block>,
-    //player : Player,
+    player : Option<Entity>,
 }
 impl RTreeObject for Block {
     type Envelope = AABB<[f32; 3]>;
@@ -56,6 +58,7 @@ fn move_player(
     //let now = Instant::now();
 
     let mut player_transform = player_query.single_mut();
+    
     let mut angle = 0.0;
     let mut direction = Vec3::ZERO;
     if keys.any_pressed([KeyCode::Z]) { direction.z += 1.; }
@@ -64,9 +67,9 @@ fn move_player(
     if keys.any_pressed([KeyCode::Q]) { direction.x += 1.; }
     /*if keys.any_pressed([KeyCode::Up]) { direction.y += 1.; }
     if keys.any_pressed([KeyCode::Down]) { direction.y -= 1.; }*/
-    if keys.any_pressed([KeyCode::Left]) { angle = 0.1; }
-    if keys.any_pressed([KeyCode::Right]) { angle = -0.1; }
-    if keys.any_just_pressed([KeyCode::Space]) {
+    if keys.any_pressed([KeyCode::Left]) { angle = 0.05; }
+    if keys.any_pressed([KeyCode::Right]) { angle = -0.05; }
+    if keys.any_just_pressed([KeyCode::E]) {
         let v = Vec3::from([0.0, 0.5, 2.0]);
         let f = player_transform.rotation.mul_vec3(v);
         let handler = commands.spawn_bundle(PbrBundle {
@@ -101,16 +104,37 @@ fn move_player(
     if let Some(block) = game.map.nearest_neighbor(&[pos.x, pos.y, pos.z]) {
         if !intersect(player_transform.translation+r, block) {
             player_transform.translation  += r;
+            
         }
     }
     else {
         player_transform.translation  += r;
     }
 }
+fn camera_focus(
+    game: ResMut<Game>,
+    mut transforms: ParamSet<(Query<&mut Transform, With<Camera3d>>, Query<&Transform>)>,
+) {
+    let a = if let Some(player_entity) = game.player {
+        let vec = if let Ok(player_transform) = transforms.p1().get(player_entity) {
+            player_transform.translation
+        } else {
+            Vec3::ZERO
+        };
+        vec
+    // otherwise, target the middle
+    } else {
+        Vec3::ZERO
+    };
+    for mut transform in transforms.p0().iter_mut() {
+        *transform = transform.looking_at(a, Vec3::Y);
+    }
 
+}
 fn setup (
     mut commands: Commands,
     asset_server: Res<AssetServer>,
+    mut game : ResMut<Game>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials : ResMut<Assets<StandardMaterial>>,
 ) {
@@ -120,14 +144,14 @@ fn setup (
         //material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
         ..default()
     });
-    commands.spawn_bundle(TransformBundle::from(Transform {
+    game.player = Some(commands.spawn_bundle(TransformBundle::from(Transform {
         translation: Vec3::new(0.0,0.,0.),
         rotation: Quat::from_rotation_y(-std::f32::consts::FRAC_PI_4),
         ..default()
     }))
     .with_children(|cell| {
-        cell.spawn_scene(asset_server.load::<Scene, _>("models/gltf/character_rogue.gltf#Scene0"));
-    }).insert(Player);
+        cell.spawn_scene(asset_server.load::<Scene, _>("models/gltf/character_mage.gltf#Scene0"));
+    }).insert(Player).id());
 
     commands.spawn_bundle(PointLightBundle {
         point_light: PointLight {
@@ -140,10 +164,11 @@ fn setup (
     });
     // camera
     commands.spawn_bundle(PerspectiveCameraBundle {
-        transform: Transform::from_xyz(0.0, 5.0, 7.0).looking_at(Vec3::ZERO, Vec3::Y),
+        transform: Transform::from_xyz(0.0, 3.5, 7.0).looking_at(Vec3::ZERO, Vec3::Y),
         ..default()
     });
 }
+
 fn main() {
     println!("Bienvenue sur mon jeu");
     
@@ -161,5 +186,6 @@ fn main() {
     .add_plugins(DefaultPlugins)
     .add_startup_system(setup)
     .add_system(move_player)
+    .add_system(camera_focus)
     .run();
 }

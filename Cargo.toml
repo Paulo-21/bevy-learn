@@ -8,7 +8,7 @@ edition = "2021"
 #crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-bevy = { version = "0.7"}
+bevy = { version = "0.7" }
 rstar = "0.9"
 # in `Cargo.toml` or `.cargo/config.toml`
 
@@ -17,6 +17,6 @@ rstar = "0.9"
 #opt-level = 1
 
 # Enable high optimizations for dependencies (incl. Bevy), but not for our code:
-#[profile.dev.package."*"]
-#opt-level = 3
+[profile.dev.package."*"]
+opt-level = 3
 
