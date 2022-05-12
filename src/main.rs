@@ -76,7 +76,7 @@ fn move_player(
             transform: Transform::from_xyz(
                 player_transform.translation.x + f.x,
                 player_transform.translation.y + f.y,
-                player_transform.translation.z+ f.z 
+                player_transform.translation.z + f.z 
             ) ,
                 ..default()
         }).id();//.insert(Block);
@@ -85,7 +85,7 @@ fn move_player(
             size : 1.0,
             x : player_transform.translation.x + f.x,
             y : player_transform.translation.y + f.y,
-            z : player_transform.translation.z+ f.z,
+            z : player_transform.translation.z + f.z,
         });
     }
     if direction == Vec3::ZERO && angle == 0.0 { return; }
