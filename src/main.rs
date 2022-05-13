@@ -104,7 +104,6 @@ fn move_player(
     if let Some(block) = game.map.nearest_neighbor(&[pos.x, pos.y, pos.z]) {
         if !intersect(player_transform.translation+r, block) {
             player_transform.translation  += r;
-            
         }
     }
     else {
@@ -115,19 +114,21 @@ fn camera_focus(
     game: ResMut<Game>,
     mut transforms: ParamSet<(Query<&mut Transform, With<Camera3d>>, Query<&Transform>)>,
 ) {
-    let a = if let Some(player_entity) = game.player {
+    let (trans, rot) = if let Some(player_entity) = game.player {
         let vec = if let Ok(player_transform) = transforms.p1().get(player_entity) {
-            player_transform.translation
+            (player_transform.translation, player_transform.rotation)
         } else {
-            Vec3::ZERO
+            (Vec3::ZERO, Quat::from_array([0.0,0.0,0.0, 0.0]))
         };
         vec
-    // otherwise, target the middle
     } else {
-        Vec3::ZERO
+        (Vec3::ZERO, Quat::from_array([0.0,0.0,0.0, 0.0]))
     };
     for mut transform in transforms.p0().iter_mut() {
-        *transform = transform.looking_at(a, Vec3::Y);
+        let camera_pos = trans + rot.mul_vec3(Vec3::new(0.0, 0.0, 1.0));
+        //*transform = Transform::from_scale(camera_pos).looking_at(trans, Vec3::Y);
+        *transform = transform.looking_at(trans, Vec3::Y);
+
     }
 
 }
