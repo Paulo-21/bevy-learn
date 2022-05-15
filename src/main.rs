@@ -125,9 +125,9 @@ fn camera_focus(
         (Vec3::ZERO, Quat::from_array([0.0,0.0,0.0, 0.0]))
     };
     for mut transform in transforms.p0().iter_mut() {
-        let camera_pos = trans + rot.mul_vec3(Vec3::new(0.0, 0.0, 1.0));
-        //*transform = Transform::from_scale(camera_pos).looking_at(trans, Vec3::Y);
-        *transform = transform.looking_at(trans, Vec3::Y);
+        let camera_pos = trans + rot.mul_vec3(Vec3::new(0.0, 4.5, -6.0));
+        *transform = Transform::from_xyz(camera_pos.x, camera_pos.y, camera_pos.z).looking_at(trans, Vec3::Y);
+        //*transform = transform.looking_at(trans, Vec3::Y);
 
     }
 
@@ -151,7 +151,7 @@ fn setup (
         ..default()
     }))
     .with_children(|cell| {
-        cell.spawn_scene(asset_server.load::<Scene, _>("models/gltf/character_mage.gltf#Scene0"));
+        cell.spawn_scene(asset_server.load::<Scene, _>("models/gltf/character_rogue.gltf#Scene0"));
     }).insert(Player).id());
 
     commands.spawn_bundle(PointLightBundle {
@@ -165,7 +165,7 @@ fn setup (
     });
     // camera
     commands.spawn_bundle(PerspectiveCameraBundle {
-        transform: Transform::from_xyz(0.0, 3.5, 7.0).looking_at(Vec3::ZERO, Vec3::Y),
+        transform: Transform::from_xyz(0.0, 4.5, -6.0).looking_at(Vec3::ZERO, Vec3::Y),
         ..default()
     });
 }
