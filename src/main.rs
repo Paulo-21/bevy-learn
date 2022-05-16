@@ -5,7 +5,6 @@ use bevy::render::camera::Camera3d;
 use bevy_rapier3d::prelude::*;
 use rstar::{RTree, RTreeObject, AABB, PointDistance};
 
-
 #[derive(Component, Default)]
 struct Player;
 #[derive(Component)]
@@ -50,6 +49,7 @@ fn intersect (a : Vec3, b : &Block) -> bool{
 fn move_player(
     keys: Res<Input<KeyCode>>, 
     mut player_query: Query<&mut Transform, With<Player>>,
+    mut player_query_velocity: Query<&mut Velocity, With<Player>>,
     mut commands : Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials : ResMut<Assets<StandardMaterial>>,
@@ -57,6 +57,7 @@ fn move_player(
     time : Res<Time>,
 ) {
     let mut player_transform = player_query.single_mut();
+    let mut player_velocity = player_query_velocity.single_mut();
     
     let mut angley = 0.0;
     let mut anglex = 0.0;
@@ -71,6 +72,12 @@ fn move_player(
     if keys.any_pressed([KeyCode::Right]) { angley = -0.05; }
     if keys.any_pressed([KeyCode::Up]) { anglex = 0.05; }
     if keys.any_pressed([KeyCode::Down]) { anglex = -0.05; }
+    if keys.any_just_pressed([KeyCode::Space]) {
+        if player_velocity.linvel.y < 0.1 {
+            player_velocity.linvel.y = 10.0;
+        }
+    }
+    //println!("{}", player_velocity.linvel.y);
     if keys.any_just_pressed([KeyCode::E]) {
         let v = Vec3::from([0.0, 5.5, 2.0]);
         let f = player_transform.rotation.mul_vec3(v);
@@ -97,7 +104,7 @@ fn move_player(
         .insert(Sleeping::disabled())
         .insert(Ccd::enabled())
         .id();
-        game.map.insert( Block { 
+        game.map.insert( Block {
             entity : Some(handler),
             size : 1.0,
             x : player_transform.translation.x + f.x,
@@ -113,8 +120,8 @@ fn move_player(
     player_transform.rotate(Quat::from_rotation_y(angley));
     player_transform.rotate(Quat::from_rotation_x(anglex));
     let r = player_transform.rotation.mul_vec3(move_delta);
+    /* 
     let pos = player_transform.translation;
-
     if let Some(block) = game.map.nearest_neighbor(&[pos.x, pos.y, pos.z]) {
         if !intersect(player_transform.translation+r, block) {
             player_transform.translation  += r;
@@ -123,6 +130,8 @@ fn move_player(
     else {
         player_transform.translation  += r;
     }
+    */
+    player_transform.translation  += r;
 }
 fn camera_focus(
     game: ResMut<Game>,
@@ -141,8 +150,6 @@ fn camera_focus(
     for mut transform in transforms.p0().iter_mut() {
         let camera_pos = trans + rot.mul_vec3(Vec3::new(0.0, 4.5, -6.0));
         *transform = Transform::from_xyz(camera_pos.x, camera_pos.y, camera_pos.z).looking_at(trans, Vec3::Y);
-        //*transform = transform.looking_at(trans, Vec3::Y);
-
     }
 
 }
@@ -166,13 +173,25 @@ fn setup (
         ..default()
     }))
     .with_children(|cell| {
-        cell.spawn_scene(asset_server.load::<Scene, _>("models/gltf/character_rogue.gltf#Scene0"));
-    }).insert(Player).id());
+        cell.spawn_scene(asset_server.load::<Scene, _>("models/gltf/character_mage.gltf#Scene0"));
+    })
+    .insert(Player)
+    .insert(RigidBody::Dynamic)
+    //.insert(Transform::from_xyz(0.0, 5.0, 0.0))
+    .insert(Velocity {
+        linvel: Vec3::new(0.0, 0.0, 0.0),
+        angvel: Vec3::new(0.0, 0.0, 0.0),
+    })
+    .insert(Collider::cuboid(0.5, 0.5, 0.5))
+    .insert(GravityScale(1.5))
+    .insert(Sleeping::disabled())
+    .insert(Ccd::enabled())
+    .id());
 
     commands.spawn_bundle(PointLightBundle {
         point_light: PointLight {
             intensity: 2500.0,
-            shadows_enabled: false,
+            shadows_enabled: true,
             ..default()
         },
         transform: Transform::from_xyz(-4.0, 8.0, 10.0),
