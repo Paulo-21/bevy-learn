@@ -2,7 +2,7 @@ use bevy::{prelude::*};
 use bevy::window;
 use bevy::window::WindowMode;
 use bevy::render::camera::Camera3d;
-//use std::time::{ Instant };
+use bevy_rapier3d::prelude::*;
 use rstar::{RTree, RTreeObject, AABB, PointDistance};
 
 
@@ -58,7 +58,8 @@ fn move_player(
 ) {
     let mut player_transform = player_query.single_mut();
     
-    let mut angle = 0.0;
+    let mut angley = 0.0;
+    let mut anglex = 0.0;
     let mut direction = Vec3::ZERO;
     if keys.any_pressed([KeyCode::Z]) { direction.z += 1.; }
     if keys.any_pressed([KeyCode::S]) { direction.z -= 1.; }
@@ -66,10 +67,12 @@ fn move_player(
     if keys.any_pressed([KeyCode::Q]) { direction.x += 1.; }
     /*if keys.any_pressed([KeyCode::Up]) { direction.y += 1.; }
     if keys.any_pressed([KeyCode::Down]) { direction.y -= 1.; }*/
-    if keys.any_pressed([KeyCode::Left]) { angle = 0.05; }
-    if keys.any_pressed([KeyCode::Right]) { angle = -0.05; }
+    if keys.any_pressed([KeyCode::Left]) { angley = 0.05; }
+    if keys.any_pressed([KeyCode::Right]) { angley = -0.05; }
+    if keys.any_pressed([KeyCode::Up]) { anglex = 0.05; }
+    if keys.any_pressed([KeyCode::Down]) { anglex = -0.05; }
     if keys.any_just_pressed([KeyCode::E]) {
-        let v = Vec3::from([0.0, 0.5, 2.0]);
+        let v = Vec3::from([0.0, 5.5, 2.0]);
         let f = player_transform.rotation.mul_vec3(v);
         let handler = commands.spawn_bundle(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Cube {
@@ -82,7 +85,18 @@ fn move_player(
                 player_transform.translation.z + f.z 
             ) ,
                 ..default()
-        }).id();//.insert(Block);
+        })
+        .insert(RigidBody::Dynamic)
+        .insert(Transform::from_xyz(0.0, 5.0, 0.0))
+        .insert(Velocity {
+            linvel: Vec3::new(1.0, 2.0, 3.0),
+            angvel: Vec3::new(0.2, 0.0, 0.0),
+        })
+        .insert(Collider::cuboid(0.5, 0.5, 0.5))
+        .insert(GravityScale(1.5))
+        .insert(Sleeping::disabled())
+        .insert(Ccd::enabled())
+        .id();
         game.map.insert( Block { 
             entity : Some(handler),
             size : 1.0,
@@ -91,12 +105,13 @@ fn move_player(
             z : player_transform.translation.z + f.z,
         });
     }
-    if direction == Vec3::ZERO && angle == 0.0 { return; }
+    if direction == Vec3::ZERO && angley == 0.0 && anglex == 0.0{ return; }
 
     let move_speed:f32 = 5.0;
     let move_delta = direction * ((move_speed * time.delta().as_millis() as f32) / 1000.0);
 
-    player_transform.rotate(Quat::from_rotation_y(angle));
+    player_transform.rotate(Quat::from_rotation_y(angley));
+    player_transform.rotate(Quat::from_rotation_x(anglex));
     let r = player_transform.rotation.mul_vec3(move_delta);
     let pos = player_transform.translation;
 
@@ -143,7 +158,8 @@ fn setup (
         material: materials.add(Color::GRAY.into()),
         //material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
         ..default()
-    });
+    })
+    .insert(Collider::cuboid(100.0, 0.1, 100.0));
     game.player = Some(commands.spawn_bundle(TransformBundle::from(Transform {
         translation: Vec3::new(0.0,0.,0.),
         rotation: Quat::from_rotation_y(-std::f32::consts::FRAC_PI_4),
@@ -184,6 +200,8 @@ fn main() {
         ..Default::default()
     })
     .add_plugins(DefaultPlugins)
+    .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
+    .add_plugin(RapierDebugRenderPlugin::default())
     .add_startup_system(setup)
     .add_system(move_player)
     .add_system(camera_focus)
