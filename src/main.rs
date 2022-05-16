@@ -54,9 +54,8 @@ fn move_player(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials : ResMut<Assets<StandardMaterial>>,
     mut game : ResMut<Game>,
+    time : Res<Time>,
 ) {
-    //let now = Instant::now();
-
     let mut player_transform = player_query.single_mut();
     
     let mut angle = 0.0;
@@ -94,8 +93,8 @@ fn move_player(
     }
     if direction == Vec3::ZERO && angle == 0.0 { return; }
 
-    let move_speed:f32 = 0.05;
-    let move_delta = direction * move_speed;
+    let move_speed:f32 = 5.0;
+    let move_delta = direction * ((move_speed * time.delta().as_millis() as f32) / 1000.0);
 
     player_transform.rotate(Quat::from_rotation_y(angle));
     let r = player_transform.rotation.mul_vec3(move_delta);
