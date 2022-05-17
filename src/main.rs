@@ -87,9 +87,9 @@ fn move_player(
             })),
             material: materials.add(Color::RED.into()),
             transform: Transform::from_xyz(
-                player_transform.translation.x + f.x,
-                player_transform.translation.y + f.y,
-                player_transform.translation.z + f.z 
+                ((player_transform.translation.x + f.x) as i32) as f32,
+                ((player_transform.translation.y + f.y) as i32) as f32,
+                ((player_transform.translation.z + f.z) as i32) as f32 
             ) ,
                 ..default()
         })
