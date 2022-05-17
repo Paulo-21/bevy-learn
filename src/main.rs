@@ -1,3 +1,4 @@
+use bevy::input::mouse::MouseMotion;
 use bevy::{prelude::*};
 use bevy::window;
 use bevy::window::WindowMode;
@@ -20,6 +21,7 @@ struct Block {
 struct Game {
     map : RTree<Block>,
     player : Option<Entity>,
+    camera_should_focus : Vec3,
 }
 impl RTreeObject for Block {
     type Envelope = AABB<[f32; 3]>;
@@ -107,9 +109,9 @@ fn move_player(
         game.map.insert( Block {
             entity : Some(handler),
             size : 1.0,
-            x : player_transform.translation.x + f.x,
-            y : player_transform.translation.y + f.y,
-            z : player_transform.translation.z + f.z,
+            x : ((player_transform.translation.x + f.x) as i32) as f32,
+            y : ((player_transform.translation.y + f.y) as i32) as f32,
+            z : ((player_transform.translation.z + f.z) as i32) as f32,
         });
     }
     if direction == Vec3::ZERO && angley == 0.0 && anglex == 0.0{ return; }
@@ -120,7 +122,7 @@ fn move_player(
     player_transform.rotate(Quat::from_rotation_y(angley));
     player_transform.rotate(Quat::from_rotation_x(anglex));
     let r = player_transform.rotation.mul_vec3(move_delta);
-    /* 
+    /*
     let pos = player_transform.translation;
     if let Some(block) = game.map.nearest_neighbor(&[pos.x, pos.y, pos.z]) {
         if !intersect(player_transform.translation+r, block) {
@@ -136,6 +138,7 @@ fn move_player(
 fn camera_focus(
     game: ResMut<Game>,
     mut transforms: ParamSet<(Query<&mut Transform, With<Camera3d>>, Query<&Transform>)>,
+    mut mouse_motion_events: EventReader<MouseMotion>,
 ) {
     let (trans, rot) = if let Some(player_entity) = game.player {
         let vec = if let Ok(player_transform) = transforms.p1().get(player_entity) {
@@ -147,9 +150,17 @@ fn camera_focus(
     } else {
         (Vec3::ZERO, Quat::from_array([0.0,0.0,0.0, 0.0]))
     };
+    let mut delta = Vec2::ZERO;
+    for event in mouse_motion_events.iter() {
+        //println!("{} , {}", event.delta.x, event.delta.y);
+        delta = event.delta;
+    }
     for mut transform in transforms.p0().iter_mut() {
         let camera_pos = trans + rot.mul_vec3(Vec3::new(0.0, 4.5, -6.0));
-        *transform = Transform::from_xyz(camera_pos.x, camera_pos.y, camera_pos.z).looking_at(trans, Vec3::Y);
+        //*transform = Transform::from_xyz(camera_pos.x, camera_pos.y, camera_pos.z);//.looking_at(game.camera_should_focus, Vec3::Y);
+        transform.translation =  Vec3::new(camera_pos.x, camera_pos.y, camera_pos.z);//.looking_at(game.camera_should_focus, Vec3::Y);
+        //transform.rotate(Quat::from_rotation_x(0.01 * (delta.y * -1.)));
+        transform.rotate(Quat::from_rotation_y(0.01 * (delta.x * -1.)));
     }
 
 }
@@ -203,6 +214,7 @@ fn setup (
         transform: Transform::from_xyz(0.0, 4.5, -6.0).looking_at(Vec3::ZERO, Vec3::Y),
         ..default()
     });
+    game.camera_should_focus = Vec3::ZERO;
 }
 
 fn main() {
