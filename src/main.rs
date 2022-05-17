@@ -177,7 +177,6 @@ fn setup (
     })
     .insert(Player)
     .insert(RigidBody::Dynamic)
-    //.insert(Transform::from_xyz(0.0, 5.0, 0.0))
     .insert(Velocity {
         linvel: Vec3::new(0.0, 0.0, 0.0),
         angvel: Vec3::new(0.0, 0.0, 0.0),
@@ -198,6 +197,7 @@ fn setup (
         transform: Transform::from_xyz(-4.0, 6.0, 10.0),
         ..default()
     });
+    
     // camera
     commands.spawn_bundle(PerspectiveCameraBundle {
         transform: Transform::from_xyz(0.0, 4.5, -6.0).looking_at(Vec3::ZERO, Vec3::Y),
