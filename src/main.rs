@@ -96,8 +96,8 @@ fn move_player(
         .insert(RigidBody::Dynamic)
         //.insert(Transform::from_xyz(0.0, 5.0, 0.0))
         .insert(Velocity {
-            linvel: Vec3::new(1.0, 2.0, 3.0),
-            angvel: Vec3::new(0.2, 0.0, 0.0),
+            linvel: Vec3::new(0.0, 0.0, 0.0),
+            angvel: Vec3::new(0.0, 0.0, 0.0),
         })
         .insert(Collider::cuboid(0.5, 0.5, 0.5))
         .insert(GravityScale(1.5))
