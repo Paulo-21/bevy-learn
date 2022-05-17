@@ -103,6 +103,7 @@ fn move_player(
         .insert(GravityScale(1.5))
         .insert(Sleeping::disabled())
         .insert(Ccd::enabled())
+        .insert(LockedAxes::ROTATION_LOCKED)
         .id();
         game.map.insert( Block {
             entity : Some(handler),
@@ -191,10 +192,10 @@ fn setup (
     commands.spawn_bundle(PointLightBundle {
         point_light: PointLight {
             intensity: 2500.0,
-            shadows_enabled: true,
+            shadows_enabled: false,
             ..default()
         },
-        transform: Transform::from_xyz(-4.0, 8.0, 10.0),
+        transform: Transform::from_xyz(-4.0, 6.0, 10.0),
         ..default()
     });
     
