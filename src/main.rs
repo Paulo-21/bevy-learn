@@ -94,7 +94,7 @@ fn move_player(
                 ..default()
         })
         .insert(RigidBody::Dynamic)
-        .insert(Transform::from_xyz(0.0, 5.0, 0.0))
+        //.insert(Transform::from_xyz(0.0, 5.0, 0.0))
         .insert(Velocity {
             linvel: Vec3::new(1.0, 2.0, 3.0),
             angvel: Vec3::new(0.2, 0.0, 0.0),
@@ -103,7 +103,6 @@ fn move_player(
         .insert(GravityScale(1.5))
         .insert(Sleeping::disabled())
         .insert(Ccd::enabled())
-        .insert(LockedAxes::ROTATION_LOCKED)
         .id();
         game.map.insert( Block {
             entity : Some(handler),
@@ -187,6 +186,7 @@ fn setup (
     .insert(GravityScale(1.5))
     .insert(Sleeping::disabled())
     .insert(Ccd::enabled())
+    .insert(LockedAxes::ROTATION_LOCKED)
     .id());
 
     commands.spawn_bundle(PointLightBundle {
