@@ -6,6 +6,10 @@ use bevy::render::camera::Camera3d;
 use bevy_rapier3d::prelude::*;
 use rstar::{RTree, RTreeObject, AABB, PointDistance};
 
+enum CameraMode{
+    FPS,
+    TOP
+}
 #[derive(Component, Default)]
 struct Player;
 #[derive(Component)]
@@ -17,12 +21,6 @@ struct Block {
     y : f32,
     z : f32,
 }
-#[derive(Default)]
-struct Game {
-    map : RTree<Block>,
-    player : Option<Entity>,
-    camera_should_focus : Vec3,
-}
 impl RTreeObject for Block {
     type Envelope = AABB<[f32; 3]>;
 
@@ -30,26 +28,34 @@ impl RTreeObject for Block {
         AABB::from_point([self.x, self.y, self.z])
     }
 }
-impl PointDistance for Block
-{
-    fn distance_2(&self, point: &[f32; 3]) -> f32
-    {
+impl PointDistance for Block {
+    fn distance_2(&self, point: &[f32; 3]) -> f32 {
         let d_x = self.x - point[0];
         let d_y = self.y - point[1];
         let d_z = self.z - point[2];
         ((d_x * d_x).powi(2) + (d_y * d_y).powi(2) + (d_z * d_z).powi(2)).sqrt()
     }
 }
-
-fn intersect (a : Vec3, b : &Block) -> bool{
+#[derive(Default)]
+struct Game {
+    map : RTree<Block>,
+    player : Option<Entity>,
+    input_state : InputState,
+}
+#[derive(Default)]
+struct InputState {
+    pitch: f32,
+    yaw: f32,
+}
+/*fn intersect (a : Vec3, b : &Block) -> bool{
     ((a.x-b.x).powi(2) + (a.y -b.y).powi(2) + (a.z-b.z).powi(2)).sqrt() < 1.25
     /*return (a.x < b.x + b.size && a.x + b.size > b.x) &&
          (a.y < b.y + b.size && a.y + b.size > b.y) &&
          (a.z < b.z + b.size && a.z + b.size > b.z);*/
-}
+}*/
 
 fn move_player(
-    keys: Res<Input<KeyCode>>, 
+    keys: Res<Input<KeyCode>>,
     mut player_query: Query<&mut Transform, With<Player>>,
     mut player_query_velocity: Query<&mut Velocity, With<Player>>,
     mut commands : Commands,
@@ -66,12 +72,12 @@ fn move_player(
     let mut direction = Vec3::ZERO;
     if keys.any_pressed([KeyCode::Z]) { direction.z += 1.; }
     if keys.any_pressed([KeyCode::S]) { direction.z -= 1.; }
-    if keys.any_pressed([KeyCode::D]) { direction.x -= 1.; }
-    if keys.any_pressed([KeyCode::Q]) { direction.x += 1.; }
+    //if keys.any_pressed([KeyCode::D]) { direction.x -= 1.; }
+    //if keys.any_pressed([KeyCode::Q]) { direction.x += 1.; }
     /*if keys.any_pressed([KeyCode::Up]) { direction.y += 1.; }
     if keys.any_pressed([KeyCode::Down]) { direction.y -= 1.; }*/
-    if keys.any_pressed([KeyCode::Left]) { angley = 0.05; }
-    if keys.any_pressed([KeyCode::Right]) { angley = -0.05; }
+    if keys.any_pressed([KeyCode::Left, KeyCode::Q]) { angley = 0.02; }
+    if keys.any_pressed([KeyCode::Right, KeyCode::D]) { angley = -0.02; }
     if keys.any_pressed([KeyCode::Up]) { anglex = 0.05; }
     if keys.any_pressed([KeyCode::Down]) { anglex = -0.05; }
     if keys.any_just_pressed([KeyCode::Space]) {
@@ -136,9 +142,10 @@ fn move_player(
     player_transform.translation  += r;
 }
 fn camera_focus(
-    game: ResMut<Game>,
+    mut game: ResMut<Game>,
     mut transforms: ParamSet<(Query<&mut Transform, With<Camera3d>>, Query<&Transform>)>,
     mut mouse_motion_events: EventReader<MouseMotion>,
+    windows: Res<Windows>,
 ) {
     let (trans, rot) = if let Some(player_entity) = game.player {
         let vec = if let Ok(player_transform) = transforms.p1().get(player_entity) {
@@ -150,17 +157,21 @@ fn camera_focus(
     } else {
         (Vec3::ZERO, Quat::from_array([0.0,0.0,0.0, 0.0]))
     };
-    let mut delta = Vec2::ZERO;
+    let window = windows.get_primary().unwrap();
     for event in mouse_motion_events.iter() {
-        //println!("{} , {}", event.delta.x, event.delta.y);
-        delta = event.delta;
+        
+        game.input_state.pitch -= ( 0.00012* event.delta.y * window.height()).to_radians();
+        game.input_state.yaw -= (0.00012 * event.delta.x * window.width()).to_radians();
+
     }
     for mut transform in transforms.p0().iter_mut() {
         let camera_pos = trans + rot.mul_vec3(Vec3::new(0.0, 4.5, -6.0));
         //*transform = Transform::from_xyz(camera_pos.x, camera_pos.y, camera_pos.z);//.looking_at(game.camera_should_focus, Vec3::Y);
         transform.translation =  Vec3::new(camera_pos.x, camera_pos.y, camera_pos.z);//.looking_at(game.camera_should_focus, Vec3::Y);
         //transform.rotate(Quat::from_rotation_x(0.01 * (delta.y * -1.)));
-        transform.rotate(Quat::from_rotation_y(0.01 * (delta.x * -1.)));
+        //transform.rotate(Quat::from_rotation_y(0.01 * (delta.x * -1.)));
+        transform.rotation = Quat::from_axis_angle(Vec3::Y, game.input_state.yaw)
+                * Quat::from_axis_angle(Vec3::X, game.input_state.pitch);
     }
 
 }
@@ -170,6 +181,7 @@ fn setup (
     mut game : ResMut<Game>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials : ResMut<Assets<StandardMaterial>>,
+    windows: Res<Windows>,
 ) {
    commands.spawn_bundle(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Plane { size: 500.0 })),
@@ -214,9 +226,9 @@ fn setup (
         transform: Transform::from_xyz(0.0, 4.5, -6.0).looking_at(Vec3::ZERO, Vec3::Y),
         ..default()
     });
-    game.camera_should_focus = Vec3::ZERO;
 }
-
+//cargo build --release --target wasm32-unknown-unknown
+//wasm-bindgen --out-name bevy_wasm --out-dir wasm/target --target web target/wasm32-unknown-unknown/release/bevy_learn.wasm
 fn main() {
     println!("Bienvenue sur mon jeu");
     
@@ -229,6 +241,8 @@ fn main() {
         height : 400.0,
         present_mode : window::PresentMode::Fifo,
         mode : WindowMode::Windowed,
+        cursor_locked : true,
+        cursor_visible : false,
         ..Default::default()
     })
     .add_plugins(DefaultPlugins)
