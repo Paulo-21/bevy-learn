@@ -3,6 +3,7 @@ use bevy::window;
 use bevy::window::WindowMode;
 use bevy_rapier3d::prelude::*;
 use rstar::{PointDistance, RTree, RTreeObject, AABB};
+
 mod camera;
 
 #[derive(Component, Default)]
