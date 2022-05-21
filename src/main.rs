@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::render::camera::Camera3d;
 use bevy::window;
 use bevy::window::WindowMode;
 use bevy_rapier3d::prelude::*;
@@ -8,6 +9,8 @@ mod camera;
 
 #[derive(Component, Default)]
 pub struct Player;
+#[derive(Component)]
+pub struct TransparentCube;
 #[derive(Component)]
 #[allow(dead_code)]
 struct Block {
@@ -34,7 +37,7 @@ impl PointDistance for Block {
 }
 #[derive(Default)]
 struct Game {
-    map: RTree<Block>,
+    //map: RTree<Block>,
     player: Option<Entity>,
 }
 
@@ -42,47 +45,35 @@ fn move_player(
     keys: Res<Input<KeyCode>>,
     mut player_query: Query<&mut Transform, With<Player>>,
     mut player_query_velocity: Query<&mut Velocity, With<Player>>,
+    //mut query_trans_cube: Query<&mut Transform, With<TransparentCube>>,
+    mut query_camera: Query<&mut camera::CamMode, With<Camera3d>>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut game: ResMut<Game>,
+    
     time: Res<Time>,
 ) {
     let mut player_transform = player_query.single_mut();
     let mut player_velocity = player_query_velocity.single_mut();
+    //let mut transcube_transf = query_trans_cube.single_mut();
+    
 
     let mut angley = 0.0;
     let mut anglex = 0.0;
     let mut direction = Vec3::ZERO;
-    if keys.any_pressed([KeyCode::Z]) {
-        direction.z += 1.;
-    }
-    if keys.any_pressed([KeyCode::S]) {
-        direction.z -= 1.;
-    }
-    //if keys.any_pressed([KeyCode::D]) { direction.x -= 1.; }
-    //if keys.any_pressed([KeyCode::Q]) { direction.x += 1.; }
-    /*if keys.any_pressed([KeyCode::Up]) { direction.y += 1.; }
-    if keys.any_pressed([KeyCode::Down]) { direction.y -= 1.; }*/
-    if keys.any_pressed([KeyCode::Left, KeyCode::Q]) {
-        angley = 0.02;
-    }
-    if keys.any_pressed([KeyCode::Right, KeyCode::D]) {
-        angley = -0.02;
-    }
-    if keys.any_pressed([KeyCode::Up]) {
-        anglex = 0.05;
-    }
-    if keys.any_pressed([KeyCode::Down]) {
-        anglex = -0.05;
-    }
+    if keys.any_pressed([KeyCode::Z]) { direction.z += 1.; }
+    if keys.any_pressed([KeyCode::S]) { direction.z -= 1.; }
+    if keys.any_pressed([KeyCode::Left, KeyCode::Q]) { angley = 0.02; }
+    if keys.any_pressed([KeyCode::Right, KeyCode::D]) { angley = -0.02; }
+    if keys.any_pressed([KeyCode::Up]) { anglex = 0.05; }
+    if keys.any_pressed([KeyCode::Down]) { anglex = -0.05; }
     if keys.any_just_pressed([KeyCode::Space]) && player_velocity.linvel.y < 0.1 {
         player_velocity.linvel.y = 10.0;
     }
     if keys.any_just_pressed([KeyCode::E]) {
         let v = Vec3::from([0.0, 5.5, 2.0]);
         let f = player_transform.rotation.mul_vec3(v);
-        let handler = commands
+        let _handler = commands
             .spawn_bundle(PbrBundle {
                 mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
                 material: materials.add(Color::RED.into()),
@@ -94,7 +85,6 @@ fn move_player(
                 ..default()
             })
             .insert(RigidBody::Dynamic)
-            //.insert(Transform::from_xyz(0.0, 5.0, 0.0))
             .insert(Velocity {
                 linvel: Vec3::new(0.0, 0.0, 0.0),
                 angvel: Vec3::new(0.0, 0.0, 0.0),
@@ -104,17 +94,27 @@ fn move_player(
             .insert(Sleeping::disabled())
             .insert(Ccd::enabled())
             .id();
-        game.map.insert(Block {
+        /*game.map.insert(Block {
             entity: Some(handler),
             size: 1.0,
             x: ((player_transform.translation.x + f.x) as i32) as f32,
             y: ((player_transform.translation.y + f.y) as i32) as f32,
             z: ((player_transform.translation.z + f.z) as i32) as f32,
-        });
+        });*/
     }
-    if direction == Vec3::ZERO && angley == 0.0 && anglex == 0.0 {
-        return;
+    if keys.any_just_pressed([KeyCode::P]) {
+        let mut camera_mode = query_camera.single_mut();    
+        match camera_mode.mode {
+            camera::AvailableMode::Fps => {
+                camera_mode.mode = camera::AvailableMode::Top;
+            },
+            camera::AvailableMode::Top => {
+                camera_mode.mode = camera::AvailableMode::Fps;
+            }
+        }
+        
     }
+    if direction == Vec3::ZERO && angley == 0.0 && anglex == 0.0 { return; }
 
     let move_speed: f32 = 5.0;
     let move_delta = direction * ((move_speed * time.delta().as_millis() as f32) / 1000.0);
@@ -122,23 +122,13 @@ fn move_player(
     player_transform.rotate(Quat::from_rotation_y(angley));
     player_transform.rotate(Quat::from_rotation_x(anglex));
     let r = player_transform.rotation.mul_vec3(move_delta);
-    /*
-    let pos = player_transform.translation;
-    if let Some(block) = game.map.nearest_neighbor(&[pos.x, pos.y, pos.z]) {
-        if !intersect(player_transform.translation+r, block) {
-            player_transform.translation  += r;
-        }
-    }
-    else {
-        player_transform.translation  += r;
-    }
-    */
+    
     player_transform.translation += r;
 }
 
 fn setup(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
+    //asset_server: Res<AssetServer>,
     mut game: ResMut<Game>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -158,10 +148,10 @@ fn setup(
                 rotation: Quat::from_rotation_y(-std::f32::consts::FRAC_PI_4),
                 ..default()
             }))
-            .with_children(|cell| {
-                cell.spawn_scene(
+            .with_children(|_cell| {
+                /*cell.spawn_scene(
                     asset_server.load::<Scene, _>("models/gltf/character_mage.gltf#Scene0"),
-                );
+                );*/
             })
             .insert(Player)
             .insert(RigidBody::Dynamic)
@@ -169,13 +159,19 @@ fn setup(
                 linvel: Vec3::new(0.0, 0.0, 0.0),
                 angvel: Vec3::new(0.0, 0.0, 0.0),
             })
-            .insert(Collider::cuboid(0.5, 0.5, 0.5))
+            .insert(Collider::cuboid(1., 1.0, 1.))
             .insert(GravityScale(1.5))
             .insert(Sleeping::disabled())
             .insert(Ccd::enabled())
             .insert(LockedAxes::ROTATION_LOCKED)
-            .id(),
+            .id()
     );
+    commands.spawn_bundle(TransformBundle::from(Transform {
+        translation: Vec3::new(0.0, 0., 1.),
+        rotation: Quat::from_rotation_y(-std::f32::consts::FRAC_PI_4),
+        ..default()
+    }))
+    .insert(TransparentCube);
 
     commands.spawn_bundle(PointLightBundle {
         point_light: PointLight {
@@ -183,20 +179,35 @@ fn setup(
             shadows_enabled: false,
             ..default()
         },
-        transform: Transform::from_xyz(-4.0, 6.0, 10.0),
+        transform: Transform::from_xyz(0.0, 6.0, 0.0),
         ..default()
     });
 
+    const HALF_SIZE: f32 = 1.0;
+    commands.spawn_bundle(DirectionalLightBundle {
+        directional_light: DirectionalLight {
+            shadow_projection: OrthographicProjection {
+                left: -HALF_SIZE,
+                right: HALF_SIZE,
+                bottom: -HALF_SIZE*2.0,
+                top: HALF_SIZE*2.0,
+                near: -10.0 * HALF_SIZE,
+                far: 10.0 * HALF_SIZE, 
+                ..default()
+            },
+            shadows_enabled: true,
+            ..default()
+        },
+        ..default()
+    });
     // camera
     commands
         .spawn_bundle(PerspectiveCameraBundle {
             transform: Transform::from_xyz(0.0, 4.5, -6.0).looking_at(Vec3::ZERO, Vec3::Y),
             ..default()
         })
-        .insert(camera::CameraInfo {
-            input_state: camera::InputState::default(),
-            camera_mode: camera::CameraMode::default(),
-        });
+        .insert(camera::InputState::default())
+        .insert(camera::CamMode::default());
 }
 
 fn main() {
@@ -222,4 +233,5 @@ fn main() {
         .add_system(move_player)
         .add_system(camera::camera_focus)
         .run();
+
 }
