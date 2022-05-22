@@ -5,7 +5,7 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 #cargo build --release --target wasm32-unknown-unknown
-#wasm-bindgen --out-name bevy_wasm --out-dir wasm/target --target web target/wasm32-unknown-unknown/release/bevy_learn.wasm
+#wasm-bindgen --out-name bevy_wasm --out-dir wasm/target --target web target/wasm32-unknown-unknown/release/bevy-learn.wasm
 
 [dependencies]
 bevy = { version = "0.7", features = ["dynamic"] }

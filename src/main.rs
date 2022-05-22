@@ -141,6 +141,7 @@ fn setup(
             ..default()
         })
         .insert(Collider::cuboid(100.0, 0.1, 100.0));
+
     game.player = Some(
         commands
             .spawn_bundle(TransformBundle::from(Transform {
@@ -159,18 +160,26 @@ fn setup(
                 linvel: Vec3::new(0.0, 0.0, 0.0),
                 angvel: Vec3::new(0.0, 0.0, 0.0),
             })
-            .insert(Collider::cuboid(1., 1.0, 1.))
+            .insert(Collider::cuboid(0.5, 0.5, 0.5))
             .insert(GravityScale(1.5))
             .insert(Sleeping::disabled())
             .insert(Ccd::enabled())
             .insert(LockedAxes::ROTATION_LOCKED)
             .id()
     );
-    commands.spawn_bundle(TransformBundle::from(Transform {
-        translation: Vec3::new(0.0, 0., 1.),
-        rotation: Quat::from_rotation_y(-std::f32::consts::FRAC_PI_4),
+    commands.spawn_bundle(PbrBundle {
+        mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
+        material : materials.add(StandardMaterial {
+                base_color: Color::LIME_GREEN,
+                ..default()
+        }),
+        transform : Transform {
+                translation: Vec3::new(0.0, 0.5, 1.),
+                ..default()
+            },
+        //material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
         ..default()
-    }))
+    })
     .insert(TransparentCube);
 
     commands.spawn_bundle(PointLightBundle {
@@ -189,8 +198,8 @@ fn setup(
             shadow_projection: OrthographicProjection {
                 left: -HALF_SIZE,
                 right: HALF_SIZE,
-                bottom: -HALF_SIZE*2.0,
-                top: HALF_SIZE*2.0,
+                bottom: -HALF_SIZE,
+                top: HALF_SIZE,
                 near: -10.0 * HALF_SIZE,
                 far: 10.0 * HALF_SIZE, 
                 ..default()

@@ -2,7 +2,7 @@ use bevy::input::mouse::MouseMotion;
 use bevy::prelude::*;
 use bevy::render::camera::Camera3d;
 
-use crate::Player;
+use crate::{Player, TransparentCube};
 
 #[derive(Default, Component)]
 pub struct InputState {
@@ -25,13 +25,13 @@ pub struct CamMode {
     pub mode : AvailableMode
 }
 
-
 pub fn camera_focus(
     mut query: ParamSet<(
         Query<&mut InputState, With<Camera3d>>,
         Query<&CamMode, With<Camera3d>>,
         Query<&Transform, With<Player>>,
         Query<&mut Transform, With<Camera3d>>,
+        Query<&mut Transform, With<TransparentCube>>,
     )>,
     windows: Res<Windows>,
     mut mouse_motion_events: EventReader<MouseMotion>,
@@ -63,12 +63,15 @@ pub fn camera_focus(
             player_transform.translation + player_transform.rotation.mul_vec3(Vec3::new(0.0, 4.5, -6.0))
         }
     };
-    
+    let trans_cube_pos : Vec3 = player_transform.translation + player_transform.rotation.mul_vec3(Vec3::new(0.0, 1., 3.0));
 
     for mut transform in query.p3().iter_mut() {
         transform.translation = Vec3::new(camera_pos.x, camera_pos.y, camera_pos.z);
         transform.rotation = Quat::from_axis_angle(Vec3::Y, yaw)
         * Quat::from_axis_angle(Vec3::X, pitch);
+    }
+    for mut transform in query.p4().iter_mut() {
+        transform.translation = Vec3::new(trans_cube_pos.x as i32 as f32, trans_cube_pos.y as i32 as f32, trans_cube_pos.z as i32 as f32);
     }
     
 }
