@@ -1,5 +1,5 @@
 # bevy-learn
-## How to test ?
+## How to use ?
 First, make sure you are Rust and cargo installed<br>
 Checkout this repo and follow instruction for installing Rust.<br>
 https://github.com/Paulo-21/Rust-Installation
