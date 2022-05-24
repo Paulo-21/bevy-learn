@@ -3,7 +3,7 @@ use bevy::render::camera::Camera3d;
 use bevy::window;
 use bevy::window::WindowMode;
 use bevy_rapier3d::prelude::*;
-use rstar::{PointDistance, RTree, RTreeObject, AABB};
+use rstar::{PointDistance, /*RTree,*/ RTreeObject, AABB};
 
 mod camera;
 
@@ -103,7 +103,7 @@ fn move_player(
         });*/
     }
     if keys.any_just_pressed([KeyCode::P]) {
-        let mut camera_mode = query_camera.single_mut();    
+        let mut camera_mode = query_camera.single_mut();
         match camera_mode.mode {
             camera::AvailableMode::Fps => {
                 camera_mode.mode = camera::AvailableMode::Top;
