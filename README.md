@@ -8,7 +8,7 @@ https://github.com/Paulo-21/Rust-Installation
 cargo run<br>
 It will take a long time to build the first time
 ## Commands
-Z / S : forward / backward
-Q / D : Rotation of the player
-Mouse move, rotation of the camera
-P : Switch betwenn camera mode
+Z / S : forward / backward <br>
+Q / D : Rotation of the player <br>
+Mouse move, rotation of the camera <br>
+P : Switch betwenn camera mode <br>
