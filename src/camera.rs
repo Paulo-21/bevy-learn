@@ -73,10 +73,10 @@ pub fn camera_focus(
     //let player_transform = player_query.get_single().unwrap();
 
     for mut transform in query.p3().iter_mut() {
-        *transform = Transform::from_xyz(camera_pos.x, camera_pos.y, camera_pos.z).looking_at(player_transform2, Vec3::Y);
-        //transform.translation = Vec3::new(camera_pos.x, camera_pos.y, camera_pos.z);
-        //transform.rotation = Quat::from_axis_angle(Vec3::Y, yaw)
-        //* Quat::from_axis_angle(Vec3::X, pitch);
+        //*transform = Transform::from_xyz(camera_pos.x, camera_pos.y, camera_pos.z).looking_at(player_transform2, Vec3::Y);
+        transform.translation = Vec3::new(camera_pos.x, camera_pos.y, camera_pos.z);
+        transform.rotation = Quat::from_axis_angle(Vec3::Y, yaw)
+        * Quat::from_axis_angle(Vec3::X, pitch);
     }
     for mut transform in query.p4().iter_mut() {
         transform.translation = Vec3::new(trans_cube_pos.x as i32 as f32, trans_cube_pos.y as i32 as f32, trans_cube_pos.z as i32 as f32);

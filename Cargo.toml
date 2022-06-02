@@ -9,7 +9,7 @@ edition = "2021"
 
 [dependencies]
 bevy = { version = "0.7", features = ["dynamic"] }
-bevy_rapier3d = { version = "0.13", features = [ "simd-stable", "debug-render" ] }
+bevy_rapier3d = { version = "0.14", features = [ "simd-stable", "debug-render" ] }
 rstar = "0.9"
 
 # Enable only a small amount of optimization in debug mode

@@ -128,7 +128,7 @@ fn move_player(
 
 fn setup(
     mut commands: Commands,
-    //asset_server: Res<AssetServer>,
+    asset_server: Res<AssetServer>,
     mut game: ResMut<Game>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -149,10 +149,10 @@ fn setup(
                 rotation: Quat::from_rotation_y(-std::f32::consts::FRAC_PI_4),
                 ..default()
             }))
-            .with_children(|_cell| {
-                /*cell.spawn_scene(
+            .with_children(|cell| {
+                cell.spawn_scene(
                     asset_server.load::<Scene, _>("models/gltf/character_mage.gltf#Scene0"),
-                );*/
+                );
             })
             .insert(Player)
             .insert(RigidBody::Dynamic)
