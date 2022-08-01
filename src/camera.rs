@@ -1,6 +1,5 @@
 use bevy::input::mouse::MouseMotion;
 use bevy::prelude::*;
-use bevy::render::camera::Camera3d;
 
 use crate::{Player, TransparentCube};
 

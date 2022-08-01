@@ -8,8 +8,8 @@ edition = "2021"
 #wasm-bindgen --out-name bevy_wasm --out-dir wasm/target --target web target/wasm32-unknown-unknown/release/bevy-learn.wasm
 
 [dependencies]
-bevy = { version = "0.7", features = ["dynamic"] }
-bevy_rapier3d = { version = "0.14", features = [ "simd-stable", "debug-render" ] }
+bevy = { version = "0.8", features = ["dynamic"] }
+bevy_rapier3d = { version = "0.16", features = [ "simd-stable", "debug-render" ] }
 rstar = "0.9"
 
 # Enable only a small amount of optimization in debug mode
