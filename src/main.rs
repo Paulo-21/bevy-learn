@@ -60,10 +60,21 @@ fn move_player(
     let mut angley = 0.0;
     let mut anglex = 0.0;
     let mut direction = Vec3::ZERO;
-    if keys.any_pressed([KeyCode::Z]) { direction.z += 1.; }
-    if keys.any_pressed([KeyCode::S]) { direction.z -= 1.; }
-    if keys.any_pressed([KeyCode::Left, KeyCode::Q]) { angley = 0.02; }
-    if keys.any_pressed([KeyCode::Right, KeyCode::D]) { angley = -0.02; }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        if keys.any_pressed([KeyCode::Z]) { direction.z += 1.; }
+        if keys.any_pressed([KeyCode::S]) { direction.z -= 1.; }
+        if keys.any_pressed([KeyCode::Left, KeyCode::Q]) { angley = 0.02; }
+        if keys.any_pressed([KeyCode::Right, KeyCode::D]) { angley = -0.02; }
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        if keys.any_pressed([KeyCode::W]) { direction.z += 1.; }
+        if keys.any_pressed([KeyCode::S]) { direction.z -= 1.; }
+        if keys.any_pressed([KeyCode::Left, KeyCode::A]) { angley = 0.02; }
+        if keys.any_pressed([KeyCode::Right, KeyCode::D]) { angley = -0.02; }
+    }
+    
     if keys.any_pressed([KeyCode::Up]) { anglex = 0.05; }
     if keys.any_pressed([KeyCode::Down]) { anglex = -0.05; }
     if keys.any_just_pressed([KeyCode::Space]) && player_velocity.linvel.y < 0.1 {
@@ -222,8 +233,9 @@ fn setup(
 
 fn main() {
     println!("Bienvenue sur mon jeu");
-
-    App::new()
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        App::new()
         .init_resource::<Game>()
         .insert_resource(ClearColor(Color::rgb(0.53, 0.53, 0.53)))
         .insert_resource(WindowDescriptor {
@@ -242,6 +254,33 @@ fn main() {
         .add_startup_system(setup)
         .add_system(move_player)
         .add_system(camera::camera_focus)
+        
+        //.add_plugin(bevy_web_resizer::Plugin)
+        
         .run();
-
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        App::new()
+        .init_resource::<Game>()
+        .insert_resource(ClearColor(Color::rgb(0.53, 0.53, 0.53)))
+        .insert_resource(WindowDescriptor {
+            title: "Jeux video".to_string(),
+            width: 500.0,
+            height: 400.0,
+            present_mode: window::PresentMode::Fifo,
+            mode: WindowMode::Windowed,
+            cursor_locked: true,
+            cursor_visible: false,
+            ..Default::default()
+        })
+        .add_plugins(DefaultPlugins)
+        .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
+        .add_plugin(RapierDebugRenderPlugin::default())
+        .add_startup_system(setup)
+        .add_system(move_player)
+        .add_system(camera::camera_focus)
+        .add_plugin(bevy_web_resizer::Plugin)
+        .run();
+    }
 }
