@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy::window;
 use bevy::window::WindowMode;
 use bevy_rapier3d::prelude::*;
-use rstar::{PointDistance, /*RTree,*/ RTreeObject, AABB};
+//use rstar::{PointDistance, /*RTree,*/ RTreeObject, AABB};
 
 mod camera;
 
@@ -18,7 +18,7 @@ struct Block {
     x: f32,
     y: f32,
     z: f32,
-}
+}/*
 impl RTreeObject for Block {
     type Envelope = AABB<[f32; 3]>;
 
@@ -33,8 +33,8 @@ impl PointDistance for Block {
         let d_z = self.z - point[2];
         ((d_x * d_x).powi(2) + (d_y * d_y).powi(2) + (d_z * d_z).powi(2)).sqrt()
     }
-}
-#[derive(Default)]
+}*/
+#[derive(Default,Resource)]
 struct Game {
     //map: RTree<Block>,
     player: Option<Entity>,
@@ -238,25 +238,24 @@ fn main() {
         App::new()
         .init_resource::<Game>()
         .insert_resource(ClearColor(Color::rgb(0.53, 0.53, 0.53)))
-        .insert_resource(WindowDescriptor {
-            title: "Jeux video".to_string(),
-            width: 500.0,
-            height: 400.0,
-            present_mode: window::PresentMode::Fifo,
-            mode: WindowMode::Windowed,
-            cursor_locked: true,
-            cursor_visible: false,
-            ..Default::default()
-        })
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            window: WindowDescriptor {
+                title: "Jeux video".to_string(),
+                width: 500.0,
+                height: 400.0,
+                present_mode: window::PresentMode::Fifo,
+                mode: WindowMode::Windowed,
+                cursor_grab_mode: window::CursorGrabMode::Confined,
+                cursor_visible: false,
+                ..Default::default()
+            },
+            ..default()
+        }))
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugin(RapierDebugRenderPlugin::default())
         .add_startup_system(setup)
         .add_system(move_player)
         .add_system(camera::camera_focus)
-        
-        //.add_plugin(bevy_web_resizer::Plugin)
-        
         .run();
     }
     #[cfg(target_arch = "wasm32")]
@@ -264,17 +263,19 @@ fn main() {
         App::new()
         .init_resource::<Game>()
         .insert_resource(ClearColor(Color::rgb(0.53, 0.53, 0.53)))
-        .insert_resource(WindowDescriptor {
-            title: "Jeux video".to_string(),
-            width: 500.0,
-            height: 400.0,
-            present_mode: window::PresentMode::Fifo,
-            mode: WindowMode::Windowed,
-            cursor_locked: true,
-            cursor_visible: false,
-            ..Default::default()
-        })
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            window: WindowDescriptor {
+                title: "Jeux video".to_string(),
+                width: 500.0,
+                height: 400.0,
+                present_mode: window::PresentMode::Fifo,
+                mode: WindowMode::Windowed,
+                cursor_grab_mode: window::CursorGrabMode::Confined,
+                cursor_visible: false,
+                ..Default::default()
+            },
+            ..default()
+        }))
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugin(RapierDebugRenderPlugin::default())
         .add_startup_system(setup)
