@@ -1,5 +1,6 @@
-use bevy::input::mouse::MouseMotion;
+use bevy::{input::mouse::MouseMotion, window};
 use bevy::prelude::*;
+use bevy::window::PrimaryWindow;
 
 use crate::{Player, TransparentCube};
 
@@ -31,11 +32,14 @@ pub fn camera_focus(
         Query<&Transform, With<Player>>,
         Query<&mut Transform, With<Camera3d>>,
         Query<&mut Transform, With<TransparentCube>>,
+        Query<&Window, With<PrimaryWindow>>
     )>,
-    windows: Res<Windows>,
     mut mouse_motion_events: EventReader<MouseMotion>,
 ) {
-    let window = windows.get_primary().unwrap();
+
+    let Ok(window) = query.p5().get_single() else {
+        return;
+    };
     let mut yaw = 0.0;
     let mut pitch = 0.0;
     

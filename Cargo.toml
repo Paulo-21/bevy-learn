@@ -9,8 +9,8 @@ edition = "2021"
 
 [dependencies]
 #bevy = { version = "0.9", features = ["dynamic"] }
-bevy = { version = "0.9" }
-bevy_rapier3d = { version = "0.19", features = [ "simd-stable", "debug-render" ] }
+bevy = { version = "0.10" }
+bevy_rapier3d = { version = "0.20", features = [ "simd-stable", "debug-render" ] }
 #rstar = "0.9"
 bevy-web-resizer = "4"
 

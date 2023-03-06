@@ -84,7 +84,7 @@ fn move_player(
         let v = Vec3::from([0.0, 5.5, 2.0]);
         let f = player_transform.rotation.mul_vec3(v);
         let _handler = commands
-            .spawn_bundle(PbrBundle {
+            .spawn(PbrBundle {
                 mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
                 material: materials.add(Color::RED.into()),
                 transform: Transform::from_xyz(
@@ -144,8 +144,8 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     commands
-        .spawn_bundle(PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Plane { size: 500.0 })),
+        .spawn(PbrBundle {
+            mesh: meshes.add(Mesh::from(shape::Plane { size: 500.0, subdivisions: 1 })),
             material: materials.add(Color::GRAY.into()),
             //material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
             ..default()
@@ -154,13 +154,13 @@ fn setup(
 
     game.player = Some(
         commands
-            .spawn_bundle(TransformBundle::from(Transform {
+            .spawn(TransformBundle::from(Transform {
                 translation: Vec3::new(0.0, 0., 0.),
                 rotation: Quat::from_rotation_y(-std::f32::consts::FRAC_PI_4),
                 ..default()
             }))
             .with_children(|cell| {
-                cell.spawn_bundle(SceneBundle {
+                cell.spawn(SceneBundle {
                     scene: asset_server.load("models/gltf/character_mage.gltf#Scene0"),
                     ..Default::default()
                 });
@@ -179,7 +179,7 @@ fn setup(
             .insert(LockedAxes::ROTATION_LOCKED)
             .id()
     );
-    commands.spawn_bundle(PbrBundle {
+    commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
         material : materials.add(StandardMaterial {
                 base_color: Color::LIME_GREEN,
@@ -194,7 +194,7 @@ fn setup(
     })
     .insert(TransparentCube);
 
-    commands.spawn_bundle(PointLightBundle {
+    commands.spawn(PointLightBundle {
         point_light: PointLight {
             intensity: 2500.0,
             shadows_enabled: false,
@@ -205,9 +205,9 @@ fn setup(
     });
 
     const HALF_SIZE: f32 = 1.0;
-    commands.spawn_bundle(DirectionalLightBundle {
+    commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
-            shadow_projection: OrthographicProjection {
+            /*shadow_projection: OrthographicProjection {
                 left: -HALF_SIZE,
                 right: HALF_SIZE,
                 bottom: -HALF_SIZE,
@@ -215,7 +215,7 @@ fn setup(
                 near: -10.0 * HALF_SIZE,
                 far: 10.0 * HALF_SIZE, 
                 ..default()
-            },
+            },*/
             shadows_enabled: true,
             ..default()
         },
@@ -223,7 +223,7 @@ fn setup(
     });
     // camera
     commands
-        .spawn_bundle(Camera3dBundle {
+        .spawn(Camera3dBundle {
             transform: Transform::from_xyz(0.0, 4.5, -6.0).looking_at(Vec3::ZERO, Vec3::Y),
             ..default()
         })
@@ -239,7 +239,14 @@ fn main() {
         .init_resource::<Game>()
         .insert_resource(ClearColor(Color::rgb(0.53, 0.53, 0.53)))
         .add_plugins(DefaultPlugins.set(WindowPlugin {
-            window: WindowDescriptor {
+            primary_window : Some( Window {
+                title: "Jeux video".to_string(),
+                
+                present_mode: window::PresentMode::Fifo,
+                mode: WindowMode::Windowed,
+                ..default()
+            }),
+            /*window: Window {
                 title: "Jeux video".to_string(),
                 width: 500.0,
                 height: 400.0,
@@ -247,10 +254,10 @@ fn main() {
                 mode: WindowMode::Windowed,
                 cursor_grab_mode: window::CursorGrabMode::Confined,
                 cursor_visible: false,
-                ..Default::default()
-            },
+                ..Default::default()*/
             ..default()
-        }))
+            }
+        ))
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugin(RapierDebugRenderPlugin::default())
         .add_startup_system(setup)
