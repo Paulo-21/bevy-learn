@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 use bevy::window;
+use bevy::window::*;
 use bevy::window::WindowMode;
+use bevy::window::CursorGrabMode::*;
+use bevy::window::CursorIcon::Arrow;
 use bevy_rapier3d::prelude::*;
 //use rstar::{PointDistance, /*RTree,*/ RTreeObject, AABB};
 
@@ -233,62 +236,28 @@ fn setup(
 
 fn main() {
     println!("Bienvenue sur mon jeu");
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        App::new()
-        .init_resource::<Game>()
-        .insert_resource(ClearColor(Color::rgb(0.53, 0.53, 0.53)))
-        .add_plugins(DefaultPlugins.set(WindowPlugin {
-            primary_window : Some( Window {
-                title: "Jeux video".to_string(),
-                
-                present_mode: window::PresentMode::Fifo,
-                mode: WindowMode::Windowed,
-                ..default()
-            }),
-            /*window: Window {
-                title: "Jeux video".to_string(),
-                width: 500.0,
-                height: 400.0,
-                present_mode: window::PresentMode::Fifo,
-                mode: WindowMode::Windowed,
-                cursor_grab_mode: window::CursorGrabMode::Confined,
-                cursor_visible: false,
-                ..Default::default()*/
+    let mut cursor = Cursor::default();
+    cursor.grab_mode = Locked;
+    cursor.visible = false;
+    App::new()
+    .init_resource::<Game>()
+    .insert_resource(ClearColor(Color::rgb(0.53, 0.53, 0.53)))
+    .add_plugins(DefaultPlugins.set(WindowPlugin {
+        primary_window : Some( Window {
+            title: "Jeux video".to_string(),
+            cursor,
+            fit_canvas_to_parent : true,
+            resolution : WindowResolution::new(500.0, 400.0),
+            present_mode: window::PresentMode::Fifo,
+            mode: WindowMode::Windowed,
             ..default()
-            }
-        ))
-        .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_plugin(RapierDebugRenderPlugin::default())
-        .add_startup_system(setup)
-        .add_system(move_player)
-        .add_system(camera::camera_focus)
-        .run();
-    }
-    #[cfg(target_arch = "wasm32")]
-    {
-        App::new()
-        .init_resource::<Game>()
-        .insert_resource(ClearColor(Color::rgb(0.53, 0.53, 0.53)))
-        .add_plugins(DefaultPlugins.set(WindowPlugin {
-            window: WindowDescriptor {
-                title: "Jeux video".to_string(),
-                width: 500.0,
-                height: 400.0,
-                present_mode: window::PresentMode::Fifo,
-                mode: WindowMode::Windowed,
-                cursor_grab_mode: window::CursorGrabMode::Confined,
-                cursor_visible: false,
-                ..Default::default()
-            },
-            ..default()
-        }))
-        .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_plugin(RapierDebugRenderPlugin::default())
-        .add_startup_system(setup)
-        .add_system(move_player)
-        .add_system(camera::camera_focus)
-        .add_plugin(bevy_web_resizer::Plugin)
-        .run();
-    }
+        }),
+        ..default()
+    }))
+    .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
+    .add_plugin(RapierDebugRenderPlugin::default())
+    .add_startup_system(setup)
+    .add_system(move_player)
+    .add_system(camera::camera_focus)
+    .run();
 }

@@ -1,4 +1,4 @@
-use bevy::{input::mouse::MouseMotion, window};
+use bevy::{input::mouse::MouseMotion};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
@@ -36,17 +36,20 @@ pub fn camera_focus(
     )>,
     mut mouse_motion_events: EventReader<MouseMotion>,
 ) {
-
-    let Ok(window) = query.p5().get_single() else {
+    let binding = query.p5();
+    let Ok(window) =  binding.get_single() else {
         return;
     };
+    let window_height = window.height();
+    let window_width = window.width();
+    drop(window);
     let mut yaw = 0.0;
     let mut pitch = 0.0;
     
     for mut info in query.p0().iter_mut() {
         for event in mouse_motion_events.iter() {
-            info.pitch -= (0.00012 * event.delta.y * window.height()).to_radians();
-            info.yaw -= (0.00012 * event.delta.x * window.width()).to_radians();
+            info.pitch -= (0.00012 * event.delta.y * window_height).to_radians();
+            info.yaw -= (0.00012 * event.delta.x * window_width).to_radians();
         }
         pitch = info.pitch;
         yaw = info.yaw;
