@@ -42,7 +42,6 @@ pub fn camera_focus(
     };
     let window_height = window.height();
     let window_width = window.width();
-    drop(window);
     let mut yaw = 0.0;
     let mut pitch = 0.0;
     

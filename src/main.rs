@@ -207,7 +207,7 @@ fn setup(
         ..default()
     });
 
-    const HALF_SIZE: f32 = 1.0;
+    //const HALF_SIZE: f32 = 1.0;
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
             /*shadow_projection: OrthographicProjection {
